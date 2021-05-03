@@ -9,8 +9,9 @@ Provides the ConwayBase class and an implementation of said class.
 
 from abc import ABC, abstractclassmethod
 
-
 import numpy as np
+
+from configs import DYING, REBORN, ALIVE
 
 
 class ConwayBase(ABC):
@@ -24,7 +25,7 @@ class ConwayBase(ABC):
     ----------
     start_field : numpy.ndarray
         Simulation field at the start of the Game.
-    
+
     Properties
     ----------
     start_field: numpy.ndarray
@@ -88,7 +89,23 @@ class Conway(ConwayBase):
         pass
     
     def update_field(self):
-        pass
-    
+        new_field = np.array(self.current_field, copy=True)
+
+        if DYING in self.current_field or REBORN in self.current_field:
+            new_field = np.where(new_field == DYING, 0, new_field)
+            new_field = np.where(new_field == REBORN, ALIVE, new_field)
+
+        else:
+            for (r, c), val in np.ndenumerate(self.current_field):
+                neighbors = self.current_field[r - 1:r + 2, c - 1:c + 2]
+                count_alive = np.count_nonzero(neighbors)
+                count_alive = count_alive - 1 if val > 0 else count_alive
+
+                if val > 0 and (count_alive < 2 or count_alive > 3):
+                    new_field[r, c] = DYING
+                if val == 0 and count_alive == 3:
+                    new_field[r, c] = REBORN
+        self.current_field = new_field
+
     def show_field(self) -> np.ndarray:
-        pass
+        return self.current_field

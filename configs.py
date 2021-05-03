@@ -34,28 +34,58 @@ def insert_pattern(base, pattern, offset=None):
     field : TYPE
         The simulation field with the pattern placed.
     """
-    pass
+    (base_rows, base_columns) = base.shape
+    y_base = base_rows // 2
+    x_base = base_columns // 2
+
+    (pat_rows, pat_columns) = np.array(pattern).shape
+    y_pat = pat_rows // 2
+    x_pat = pat_columns // 2
+
+    row_start = y_base - y_pat
+    column_start = x_base - x_pat
+
+    if offset is not None:
+        row_start += offset[0]
+        column_start += offset[1]
+
+    row_end = row_start + pat_rows
+    column_end = column_start + pat_columns
+
+    try:
+        base[row_start:row_end, column_start:column_end] = pattern
+    except ValueError as ve:
+        print(ve)
+    return base
 
 
-BLINKER = [[1, 1, 1]]
+ALIVE = 0x00CC00
+REBORN = 0x00FF00
+DYING = 0x005000
 
-BEACON = [[1, 1, 0, 0],
-          [1, 1, 0, 0],
-          [0, 0, 1, 1],
-          [0, 0, 1, 1]]
+BLINKER = [[ALIVE, ALIVE, ALIVE]]
 
-PULSER = [[1, 1, 1, 1, 1, 1, 1, 1],
-          [1, 0, 1, 1, 1, 1, 0, 1],
-          [1, 1, 1, 1, 1, 1, 1, 1]]
+BEACON = [[ALIVE, ALIVE, 0, 0],
+          [ALIVE, ALIVE, 0, 0],
+          [0, 0, ALIVE, ALIVE],
+          [0, 0, ALIVE, ALIVE]]
+
+PULSER = [[ALIVE, ALIVE, ALIVE, ALIVE, ALIVE, ALIVE, ALIVE, ALIVE],
+          [ALIVE, 0, ALIVE, ALIVE, ALIVE, ALIVE, 0, ALIVE],
+          [ALIVE, ALIVE, ALIVE, ALIVE, ALIVE, ALIVE, ALIVE, ALIVE]]
 
 GOSPER = [
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, 0, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, ALIVE, 0, 0, 0, 0, 0, 0, ALIVE, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, ALIVE],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, ALIVE, 0, 0, 0, 0, ALIVE, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, ALIVE],
+    [ALIVE, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, ALIVE, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [ALIVE, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, ALIVE, 0, ALIVE, ALIVE, 0, 0, 0, 0, ALIVE, 0, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, 0, 0, 0, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ALIVE, ALIVE, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ]
+
+BEEHIVE = [[0, ALIVE, ALIVE, 0],
+           [ALIVE, 0, 0, ALIVE],
+           [0, ALIVE, ALIVE, 0]]
